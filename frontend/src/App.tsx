@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import LoginForm from './components/LoginForm';
 import UserManagementPage from './components/UserManagementPage';
@@ -8,7 +8,8 @@ import { Toaster } from 'react-hot-toast';
 import { Users, User, LogOut } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, isAdmin, logout, loading, login } = useAuth();
+  const { isAuthenticated, isAdmin, logout, loading, login, profile, updateProfile, changePassword } = useAuth();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -38,9 +39,12 @@ const AppContent: React.FC = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-700">
+                {profile?.nom} {profile?.prenom}
+              </span>
               {isAdmin && (
                 <button
-                  onClick={() => window.location.href = '/users'}
+                  onClick={() => navigate('/users')}
                   className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                 >
                   <Users className="w-4 h-4" />
@@ -48,8 +52,8 @@ const AppContent: React.FC = () => {
                 </button>
               )}
               <button
-                onClick={() => window.location.href = '/profile'}
-                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                onClick={() => navigate('/profile')}
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50"
               >
                 <User className="w-4 h-4" />
                 Mon Profil
@@ -73,12 +77,18 @@ const AppContent: React.FC = () => {
             <Route path="/users" element={<UserManagementPage />} />
           )}
           <Route path="/profile" element={<ProfileForm 
-            profile={null} 
+            profile={profile} 
             onUpdateProfile={async (data) => {
-              console.log('Update profile:', data);
+              const success = await updateProfile(data);
+              if (success) {
+                console.log('Profil mis à jour avec succès');
+              }
             }} 
             onChangePassword={async (data) => {
-              console.log('Change password:', data);
+              const success = await changePassword(data);
+              if (success) {
+                console.log('Mot de passe changé avec succès');
+              }
             }} 
           />} />
           <Route path="*" element={<Navigate to="/" replace />} />
